@@ -3,6 +3,11 @@ function initDefaultAudioPlayer() {
     const defaultAudio = document.getElementById('media-player');
     defaultAudio.src = ''; // Reset source
     defaultAudio.style.display = 'block'; // Display the audio player
+
+    // Add event listener for pause event after creating the media element
+    defaultAudio.addEventListener('pause', function() {
+        skipBackward();
+    });
 }
 
 // Initialize default audio player
@@ -29,11 +34,16 @@ document.getElementById('file-input').addEventListener('change', function(event)
             audio.controls = true;
             audio.src = URL.createObjectURL(file);
             mediaContainer.appendChild(audio);
-
+            
+            // Add event listener for pause event after creating the media element
             audio.addEventListener('pause', function() {
                 skipBackward();
             });
 
+            // Add event listener for timeupdate event after creating the media element
+            audio.addEventListener('timeupdate', function() {
+                updateTextAreaWithTime();
+            });
         } else if (fileType === 'video') {
             // Create video element
             const video = document.createElement('video');
@@ -45,11 +55,16 @@ document.getElementById('file-input').addEventListener('change', function(event)
             video.style.resize = 'both'; // Allow resizing
             video.style.overflow = 'hidden'; // Hide overflow
             mediaContainer.appendChild(video);
-
+            
+            // Add event listener for pause event after creating the media element
             video.addEventListener('pause', function() {
                 skipBackward();
             });
 
+            // Add event listener for timeupdate event after creating the media element
+            video.addEventListener('timeupdate', function() {
+                updateTextAreaWithTime();
+            });
         } else {
             alert('Please select a valid audio or video file.');
             // Re-initialize default audio player
@@ -77,6 +92,7 @@ document.getElementById('skip-backward-btn').addEventListener('click', function(
 document.addEventListener('keydown', function(event) {
     const keyCode = event.keyCode;
     const isAltPressed = event.altKey;
+    const isCtrlPressed = event.ctrlKey;
 
     // Alt+C or Spacebar for play/pause
     if (keyCode === 67 && isAltPressed || keyCode === 27) {
@@ -86,6 +102,11 @@ document.addEventListener('keydown', function(event) {
     // Alt+Z for skip backwards
     if (keyCode === 90 && isAltPressed) {
         skipBackward();
+    }
+
+    // Ctrl+; for inserting time code into text area
+    if (keyCode === 186 && isCtrlPressed) {
+        insertTimeCodeIntoTextArea();
     }
 });
 
@@ -112,3 +133,24 @@ function skipBackward() {
     media.currentTime -= 2; // Skip backward by 2 seconds
 }
 
+// Function to format time in HH:MM:SS format
+function formatTime(time) {
+    const hours = Math.floor(time / 3600);
+    const minutes = Math.floor((time % 3600) / 60);
+    const seconds = Math.floor(time % 60);
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+// Function to insert time code into text area
+function insertTimeCodeIntoTextArea() {
+    const media = document.querySelector('audio, video');
+    const currentTime = media.currentTime;
+    const formattedTime = formatTime(currentTime);
+    const textArea = document.getElementById('notes');
+    const startPosition = textArea.selectionStart;
+    const endPosition = textArea.selectionEnd;
+    const textBefore = textArea.value.substring(0, startPosition);
+    const textAfter = textArea.value.substring(endPosition, textArea.value.length);
+    const newText = textBefore + formattedTime + textAfter;
+    textArea.value = newText;
+}
