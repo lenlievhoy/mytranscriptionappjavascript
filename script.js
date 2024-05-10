@@ -151,6 +151,6 @@ function insertTimeCodeIntoTextArea() {
     const endPosition = textArea.selectionEnd;
     const textBefore = textArea.value.substring(0, startPosition);
     const textAfter = textArea.value.substring(endPosition, textArea.value.length);
-    const newText = textBefore + formattedTime + textAfter;
+    const newText = textBefore + "[" + formattedTime + "]" + textAfter;
     textArea.value = newText;
 }
